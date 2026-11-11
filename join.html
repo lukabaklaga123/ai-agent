@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join the Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- QR code generator (runs in the browser, nothing is sent anywhere) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <style>
+    :root {
+      --accent: #7c5cff;
+      --accent-2: #00d4ff;
+      --text: #f2f2f5;
+      --muted: #a3a3b2;
+      --border: rgba(255, 255, 255, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--text);
+      background-color: #0b0b12;
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(124, 92, 255, 0.35), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0, 212, 255, 0.25), transparent 45%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3vh 4vw;
+    }
+    .slide {
+      width: 100%;
+      max-width: 1400px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 5vw;
+      align-items: center;
+    }
+    .kicker { font-size: clamp(14px, 1.4vw, 22px); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-2); }
+    h1 {
+      font-size: clamp(34px, 4.6vw, 80px);
+      font-weight: 800;
+      line-height: 1.05;
+      margin: 1.2vh 0 2.4vh;
+    }
+    h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 1.6vh; counter-reset: s; }
+    .steps li {
+      counter-increment: s;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.2vw;
+      align-items: start;
+      font-size: clamp(16px, 1.7vw, 28px);
+      line-height: 1.35;
+    }
+    .steps li::before {
+      content: counter(s);
+      width: 1.9em; height: 1.9em;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-weight: 700;
+      font-size: 0.85em;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+    }
+    .steps small { display: block; color: var(--muted); font-size: 0.72em; margin-top: 0.2em; }
+    .steps b { color: var(--text); }
+    .card {
+      background: rgba(20, 20, 20, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 3.5vh 2.5vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2vh;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    #qr { width: min(30vw, 46vh); aspect-ratio: 1; background: #fff; border-radius: 18px; padding: 3%; }
+    #qr canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+    .url {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: clamp(16px, 1.9vw, 32px);
+      font-weight: 700;
+      text-align: center;
+      word-break: break-all;
+    }
+    .note { font-size: clamp(12px, 1.1vw, 18px); color: var(--muted); text-align: center; }
+    .tools { position: fixed; bottom: 14px; right: 16px; display: flex; gap: 8px; }
+    .tools button {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tools button:hover { color: var(--text); border-color: var(--accent); }
+    @media (max-width: 820px) {
+      body { align-items: flex-start; }
+      .slide { grid-template-columns: 1fr; gap: 28px; }
+      #qr { width: min(70vw, 320px); }
+      .tools { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="slide">
+    <section>
+      <p class="kicker">Beyond ChatGPT · Workshop</p>
+      <h1>Build your own <span>AI agent</span></h1>
+      <ol class="steps">
+        <li><span>Scan the code or type the link in <b>Chrome</b> or <b>Edge</b>
+          <small>Nothing to install</small></span></li>
+        <li><span>Click <b>Allow</b> when it asks for the camera or microphone</span></li>
+        <li><span>Get a free AI key
+          <small><b>console.groq.com/keys</b> &nbsp;·&nbsp; backup: <b>aistudio.google.com/apikey</b></small></span></li>
+        <li><span>Follow the 4 steps in the Builder:
+          <small><b>Brain → Persona → Senses → Save</b></small></span></li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <div id="qr" role="img" aria-label="QR code for the workshop link"></div>
+      <div id="url" class="url"></div>
+      <p class="note">Your key is your password. Never share it.</p>
+    </section>
+  </main>
+
+  <div class="tools">
+    <button id="download" type="button">Download QR image</button>
+    <button id="full" type="button">Full screen</button>
+  </div>
+
+  <script>
+    // The app lives in the same folder as this page
+    const appUrl = new URL("./", location.href).href;
+    document.getElementById("url").textContent = appUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+    // Draw the QR code on a canvas, so it can also be downloaded as a PNG
+    function drawQr(size) {
+      const canvas = document.createElement("canvas");
+      if (typeof qrcode === "undefined") return canvas;   // library blocked: the link text still works
+      const qr = qrcode(0, "M");
+      qr.addData(appUrl);
+      qr.make();
+      const n = qr.getModuleCount();
+      const quiet = 2;
+      const cell = Math.floor(size / (n + quiet * 2));
+      canvas.width = canvas.height = cell * (n + quiet * 2);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#0b0b12";
+      for (let r = 0; r < n; r++)
+        for (let c = 0; c < n; c++)
+          if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+      return canvas;
+    }
+    document.getElementById("qr").appendChild(drawQr(800));
+
+    document.getElementById("download").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = drawQr(1200).toDataURL("image/png");
+      a.download = "workshop-qr-code.png";
+      a.click();
+    });
+    document.getElementById("full").addEventListener("click", () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(() => {});
+    });
+  </script>
+</body>
+</html>

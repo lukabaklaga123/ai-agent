@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Builder – Build Your Own AI Agent</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- AI Vision libraries (TensorFlow.js + Teachable Machine image).
+       Pose and sound libraries are loaded automatically only when needed. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+
+  <!-- Full-screen layer for action effects (emojis, flashes) -->
+  <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+
+  <div class="shell">
+
+    <!-- =====================================================
+         LEFT: THE AGENT
+         ===================================================== -->
+    <main id="app" class="agent glass">
+
+      <header class="app-header">
+        <div class="title">
+          <h1 id="agent-name">Agent</h1>
+          <p class="subtitle">Build · Hack · Command your own AI agent</p>
+        </div>
+        <div class="header-right">
+          <span id="hack-chip" class="chip" title="Trick the agent into revealing its secret password">🔐 Hack me</span>
+          <span id="status-pill" class="status-pill">● …</span>
+          <button id="voice-btn" type="button" class="icon-btn" title="Toggle voice">🔇</button>
+          <button id="builder-toggle" type="button" class="icon-btn" title="Open / close the Builder">⚙️</button>
+        </div>
+      </header>
+
+      <!-- SENSE · THINK · ACT -->
+      <section class="stage">
+        <figure class="avatar-card">
+          <img id="avatar-img" src="" alt="AI avatar">
+          <figcaption>
+            Mood: <strong id="mood-label">idle</strong>
+            <span class="dot">·</span>
+            Action: <strong id="action-label">none</strong>
+          </figcaption>
+        </figure>
+
+        <div class="senses-card">
+          <!-- tmImage.Webcam / tmPose.Webcam canvas goes in here -->
+          <div id="webcam-container" class="webcam-container">
+            <span class="webcam-placeholder">👁️ Eyes closed</span>
+          </div>
+          <div class="sense-info">
+            <div id="gesture-label" class="sense-label">👁️ Eyes: off</div>
+            <div id="cam-bars" class="prediction-bars"></div>
+            <div id="sound-label" class="sense-label">👂 Ears: off</div>
+            <div id="mic-bars" class="prediction-bars"></div>
+            <div class="sense-buttons">
+              <button id="webcam-btn" type="button" class="btn btn-secondary btn-small">START EYES (WEBCAM)</button>
+              <button id="ears-btn" type="button" class="btn btn-secondary btn-small">START EARS (MIC)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="chat-log" class="chat-log" aria-live="polite"></section>
+
+      <form id="chat-form" class="input-area" autocomplete="off">
+        <input id="user-input" type="text" placeholder="Say something to your agent..." aria-label="Message">
+        <button id="talk-btn" type="button" class="icon-btn big" title="Speak your message">🎤</button>
+        <button id="send-btn" type="submit" class="btn btn-primary">SEND</button>
+      </form>
+    </main>
+
+    <!-- =====================================================
+         RIGHT: THE BUILDER
+         ===================================================== -->
+    <aside id="builder" class="builder glass">
+      <div class="builder-head">
+        <h2>🛠️ Agent Builder</h2>
+        <button id="builder-close" type="button" class="icon-btn" title="Close">✕</button>
+      </div>
+
+      <!-- Setup progress: turns green as the student finishes each part -->
+      <ol id="steps" class="steps">
+        <li data-step="brain" data-tab="brain">Brain</li>
+        <li data-step="persona" data-tab="persona">Persona</li>
+        <li data-step="senses" data-tab="senses">Senses</li>
+        <li data-step="saved" data-tab="inspect">Save</li>
+      </ol>
+
+      <nav class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="brain">🧠 Brain</button>
+        <button type="button" class="tab" data-tab="persona">🎭 Persona</button>
+        <button type="button" class="tab" data-tab="senses">👁️ Senses</button>
+        <button type="button" class="tab" data-tab="behaviour">⚡ Actions</button>
+        <button type="button" class="tab" data-tab="inspect">🔍 Inspect</button>
+      </nav>
+
+      <!-- ---------- 🧠 BRAIN ---------- -->
+      <section class="panel active" data-panel="brain">
+        <p class="hint">
+          <strong>No key?</strong> Your agent runs on a small <em>Demo brain</em> (fixed rules, no real AI).
+          Add a free API key to wake up a real Large Language Model.
+        </p>
+
+        <label>Provider
+          <select id="provider-select" data-bind="provider"></select>
+        </label>
+
+        <label>API key
+          <span class="row">
+            <input id="api-key" type="password" data-bind="apiKey" placeholder="Paste your free key here" autocomplete="off" spellcheck="false">
+            <button id="key-show" type="button" class="mini-btn" title="Show / hide">👁</button>
+          </span>
+        </label>
+        <p class="small">
+          <a id="key-link" href="#" target="_blank" rel="noopener">Get a free key →</a>
+          &nbsp;·&nbsp; Saved only in this browser. Never share it.
+        </p>
+
+        <div class="row">
+          <button id="test-btn" type="button" class="btn btn-secondary btn-small">Test connection</button>
+          <span id="test-result" class="small"></span>
+        </div>
+
+        <label>Creativity (temperature) <output data-out="temperature"></output>
+          <input type="range" min="0" max="1.5" step="0.1" data-bind="temperature">
+          <span class="scale"><span>predictable</span><span>wild</span></span>
+        </label>
+
+        <label>Memory (messages remembered) <output data-out="memory"></output>
+          <input type="range" min="2" max="40" step="2" data-bind="memory">
+        </label>
+
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <label>API URL <input type="text" data-bind="apiUrl" spellcheck="false"></label>
+          <label>Model <input type="text" data-bind="model" list="model-list" spellcheck="false"></label>
+          <datalist id="model-list"></datalist>
+          <p class="small">If a model is retired, the app switches to a working one by itself.</p>
+        </details>
+      </section>
+
+      <!-- ---------- 🎭 PERSONA ---------- -->
+      <section class="panel" data-panel="persona">
+        <label>Start from a template</label>
+        <div id="preset-list" class="preset-list"></div>
+
+        <label>Name
+          <input type="text" data-bind="name" maxlength="30">
+        </label>
+
+        <label>Personality – who is your agent? How does it talk?
+          <textarea rows="6" data-bind="personality"></textarea>
+        </label>
+
+        <label>🔐 Secret password it must protect <span class="small">(empty = no hack challenge)</span>
+          <input type="text" data-bind="secret" maxlength="30" spellcheck="false">
+        </label>
+
+        <label>Faces – one per mood <span class="small">(type an emoji or upload a picture)</span></label>
+        <div id="avatar-grid" class="avatar-grid"></div>
+
+        <label class="inline">Accent colour
+          <input type="color" data-bind="accent">
+        </label>
+
+        <label class="inline"><input type="checkbox" data-bind="voiceOn"> Speak replies out loud</label>
+        <label>Voice pitch <output data-out="voicePitch"></output>
+          <input type="range" min="0" max="2" step="0.1" data-bind="voicePitch">
+          <span class="scale"><span>deep</span><span>squeaky</span></span>
+        </label>
+        <label>Voice speed <output data-out="voiceRate"></output>
+          <input type="range" min="0.5" max="1.6" step="0.05" data-bind="voiceRate">
+        </label>
+        <button id="voice-test" type="button" class="btn btn-secondary btn-small">Test voice</button>
+      </section>
+
+      <!-- ---------- 👁️ SENSES ---------- -->
+      <section class="panel" data-panel="senses">
+        <p class="hint">
+          Train a model at <a href="https://teachablemachine.withgoogle.com/train" target="_blank" rel="noopener">Teachable Machine</a>,
+          click <strong>Export Model → Upload my model</strong>, and paste the link here.
+          Always include a <strong>“nothing” class</strong> (Neutral / Background Noise).
+        </p>
+
+        <label>👁️ Eyes – Image or Pose model link
+          <input type="url" data-bind="camUrl" placeholder="https://teachablemachine.withgoogle.com/models/…/" spellcheck="false">
+        </label>
+        <button id="cam-load" type="button" class="btn btn-secondary btn-small">▶ Load model &amp; start Eyes</button>
+        <div id="cam-triggers" class="triggers"><p class="small muted">Your model's classes will appear here.</p></div>
+
+        <label>👂 Ears – Audio model link
+          <input type="url" data-bind="micUrl" placeholder="https://teachablemachine.withgoogle.com/models/…/" spellcheck="false">
+        </label>
+        <button id="mic-load" type="button" class="btn btn-secondary btn-small">▶ Load model &amp; start Ears</button>
+        <div id="mic-triggers" class="triggers"><p class="small muted">Your model's classes will appear here.</p></div>
+
+        <h3>Accuracy tuning</h3>
+        <label>Confidence needed <output data-out="threshold"></output>
+          <input type="range" min="0.5" max="0.99" step="0.01" data-bind="threshold">
+          <span class="scale"><span>fires easily</span><span>very strict</span></span>
+        </label>
+        <label>Hold time for gestures / poses (ms) <output data-out="holdMs"></output>
+          <input type="range" min="0" max="2000" step="100" data-bind="holdMs">
+        </label>
+        <label>Cooldown after a trigger (ms) <output data-out="cooldownMs"></output>
+          <input type="range" min="1000" max="15000" step="500" data-bind="cooldownMs">
+        </label>
+      </section>
+
+      <!-- ---------- ⚡ ACTIONS ---------- -->
+      <section class="panel" data-panel="behaviour">
+        <p class="hint">
+          A chatbot only talks. An <strong>agent</strong> decides to <em>do</em> things.
+          In every answer your agent picks one of these actions by itself.
+        </p>
+        <div id="action-list" class="action-list"></div>
+
+        <h3>Autonomy</h3>
+        <label>Speak on its own after silence (seconds, 0 = off) <output data-out="idleSeconds"></output>
+          <input type="range" min="0" max="120" step="5" data-bind="idleSeconds">
+        </label>
+      </section>
+
+      <!-- ---------- 🔍 INSPECT ---------- -->
+      <section class="panel" data-panel="inspect">
+        <h3>Last raw answer from the brain</h3>
+        <pre id="debug-raw">(nothing yet)</pre>
+        <h3>Instructions sent to the LLM <span id="debug-history" class="muted"></span></h3>
+        <pre id="debug-prompt"></pre>
+
+        <div class="button-grid">
+          <button id="clear-btn" type="button" class="btn btn-secondary btn-small">🧹 Clear chat &amp; memory</button>
+          <button id="export-btn" type="button" class="btn btn-secondary btn-small">💾 Save agent to file</button>
+          <button id="import-btn" type="button" class="btn btn-secondary btn-small">📂 Load agent from file</button>
+          <button id="reset-btn" type="button" class="btn btn-secondary btn-small danger">♻️ Reset everything</button>
+        </div>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+        <p class="small muted">Saved agent files never contain your API key.</p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
